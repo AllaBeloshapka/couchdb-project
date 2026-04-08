@@ -14,7 +14,7 @@ export async function middleware(request: NextRequest) {
     // 2. Access Control: If no token is found and user targets a protected route
     if (!token && isDashboardPage) {
         // Redirect to Login API (or login page) since the user is unauthenticated
-        return NextResponse.redirect(new URL('/api/auth/login', request.url)); 
+        return NextResponse.redirect(new URL('/', request.url)); 
     }
 
     try {
@@ -31,7 +31,7 @@ export async function middleware(request: NextRequest) {
     } catch (error) {
         // 4. Fallback: If the token is invalid or tampered with, deny access
         console.error('Middleware JWT Verification Error:', error);
-        return NextResponse.redirect(new URL('/api/auth/login', request.url));
+        return NextResponse.redirect(new URL('/', request.url));
     }
 
     // Allow all other non-protected requests to continue

@@ -1,6 +1,32 @@
 🛡️ Next.js & CouchDB Authentication System
 This project is a modern, API-first authentication layer built with Next.js (App Router) and CouchDB. The goal is to create a robust system that works seamlessly across Web and Mobile (Native) platforms without relying on built-in database auth or third-party session providers.
 
+my-app/
+├── 📁 app/                     # Next.js App Router (Routing & Pages)
+│   ├── 📁 api/                 # Server-side API Routes (Backend)
+│   │   └── 📁 auth/            # Authentication Endpoints
+│   │       ├── 📁 login/       # POST: User sign-in & JWT issuance
+│   │       │   └── route.ts
+│   │       └── 📁 register/    # POST: User registration & Password hashing
+│   │           └── route.ts
+│   ├── 📁 dashboard/           # Protected UI (Visible only after login)
+│   │   └── page.tsx
+│   ├── layout.tsx              # Root Layout (Main wrapper, fonts, metadata)
+│   └── page.tsx                # Landing Page (The entry point)
+│
+├── 📁 lib/                     # Shared Utilities & Configurations
+│   └── couchdb.ts              # CouchDB (Nano) client initialization
+│
+├── 📁 public/                  # Static assets (Images, icons, fonts)
+│
+├── 📄 .env.local               # Environment Variables (Secrets - ignored by Git)
+├── 📄 .gitignore               # List of files to be excluded from version control
+├── 📄 middleware.ts            # Global Auth Guard (Request interception)
+├── 📄 next.config.ts           # Next.js framework configuration
+├── 📄 package.json             # Project dependencies and scripts
+├── 📄 README.md                # Technical documentation (The project's face)
+└── 📄 tsconfig.json            # TypeScript compiler configuration
+
 🚀 Current Status: Phase 1 (Foundation)
 We have successfully implemented the core authentication flow focusing on security and scalability.
 
