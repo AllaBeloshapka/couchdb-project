@@ -1,54 +1,54 @@
 import { NextResponse } from 'next/server';
 import bcrypt from 'bcrypt';
-import * as jose from 'jose'; // Библиотека для работы с токенами
-import dbClient from '@/lib/couchdb'; // Твой файл подключения к базе
+import * as jose from 'jose';
+import dbClient from '@/lib/couchdb';
 
 export async function POST(request: Request) {
     try {
         const { email, password } = await request.json();
-
-        // 1. Подключаемся к базе 'users'
         const db = dbClient.use('users');
 
-        // 2. Ищем пользователя по email (так как email у нас это _id)
-        // В CouchDB метод .get() ищет именно по полю _id
+        // 1. Ищем пользователя
         const user: any = await db.get(email);
 
-        if (!user) {
-            return NextResponse.json({ error: 'Пользователь не найден' }, { status: 401 });
-        }
-
-        // 3. Сравниваем введенный пароль с тем, что лежит в базе (хешем)
+        // 2. Проверяем пароль
         const isPasswordMatch = await bcrypt.compare(password, user.passwordHash);
-
         if (!isPasswordMatch) {
-            return NextResponse.json({ error: 'Неверный пароль' }, { status: 401 });
+            return NextResponse.json({ error: 'Incorrect password' }, { status: 401 });
         }
 
-        // 4. Если всё ок — создаем JWT-токен (пропуск)
+        // 3. Создаем токен (переменная token рождается здесь)
         const secret = new TextEncoder().encode(process.env.JWT_SECRET);
         const token = await new jose.SignJWT({ 
             email: user.email, 
             id: user._id 
         })
-            .setProtectedHeader({ alg: 'HS256' }) // Алгоритм шифрования
-            .setIssuedAt() // Дата создания
-            .setExpirationTime('2h') // Срок действия (2 часа)
-            .sign(secret); // Подписываем нашим секретом
+            .setProtectedHeader({ alg: 'HS256' })
+            .setIssuedAt()
+            .setExpirationTime('2h')
+            .sign(secret);
 
-        // 5. Возвращаем токен клиенту
-        return NextResponse.json({ 
-            message: 'Вход выполнен успешно',
-            token: token 
+        // 4. Создаем ответ и ПРЯМО ТУТ устанавливаем куку
+        const response = NextResponse.json({ 
+            message: 'Login successful' 
         }, { status: 200 });
 
-    } catch (error: any) {
-        // Если база не нашла документ, она выкинет ошибку 404
-        if (error.statusCode === 404) {
-            return NextResponse.json({ error: 'Пользователь не найден' }, { status: 401 });
-        }
+        response.cookies.set('auth_token', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: 60 * 60 * 2,
+            path: '/',
+        });
 
-        console.error('Ошибка входа:', error);
+        // 5. Возвращаем готовый ответ с кукой
+        return response;
+
+    } catch (error: any) {
+        if (error.statusCode === 404) {
+            return NextResponse.json({ error: 'User not found' }, { status: 401 });
+        }
+        console.error('Login error:', error);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }

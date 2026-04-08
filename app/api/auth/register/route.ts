@@ -33,7 +33,7 @@ export async function POST(request: Request) {
 
         return NextResponse.json({ message: 'User registered successfully' }, { status: 201 });
     } catch (error: any) {
-        console.error('Ошибка регистрации:', error);
+        console.error('Registration error:', error);
         return NextResponse.json({ error: 'Registration failed' }, { status: 500 });
     }
 }
